@@ -15,7 +15,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       data-cursor="invert"
       suppressHydrationWarning
       className={cn(
-        "theme-toggle relative grid h-11 w-11 place-items-center rounded-full bg-foreground text-background",
+        "theme-toggle relative z-[1] grid h-11 w-11 place-items-center rounded-full bg-foreground text-background",
         className,
       )}
     >

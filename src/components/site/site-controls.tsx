@@ -4,6 +4,7 @@ import { LayoutGroup, motion } from "motion/react";
 import { useLenis } from "lenis/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { SiteHeader } from "@/components/site/site-header";
 import { cn } from "@/lib/utils";
 import type { ProfileDoc, SectionDoc } from "@/types";
@@ -13,6 +14,7 @@ function navLabel(item: SectionDoc) {
 }
 
 export function SiteControls({
+  profile,
   sections,
 }: {
   profile?: ProfileDoc | null;
@@ -23,7 +25,12 @@ export function SiteControls({
   const onHome = pathname === "/";
   const items = sections;
   const [active, setActive] = useState(items[0]?.key ?? "hero");
+  const [mounted, setMounted] = useState(false);
   const ids = useMemo(() => items.map((item) => item.key), [items]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function update() {
@@ -68,15 +75,52 @@ export function SiteControls({
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   }
 
+  const mobileNav = (
+    <nav aria-label="Sections" className="nav-glass mobile-nav lg:hidden">
+      <LayoutGroup>
+        <ul className="flex min-w-0 max-w-full items-center justify-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {items.map((item) => {
+            const isActive = active === item.key;
+            return (
+              <li key={item.key} className="shrink-0">
+                <button
+                  type="button"
+                  aria-label={navLabel(item)}
+                  aria-current={isActive ? "true" : undefined}
+                  onClick={() => go(item.key)}
+                  className={cn("sidenav-item w-auto min-h-11 min-w-11 justify-center gap-2 px-3")}
+                >
+                  {isActive ? (
+                    <motion.span
+                      layoutId="nav-active-mobile"
+                      className="sidenav-active"
+                      transition={{ type: "tween", duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+                    />
+                  ) : null}
+                  <span className="sidenav-dot relative z-[1]" />
+                  {isActive ? <span className="relative z-[1]">{navLabel(item)}</span> : null}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </LayoutGroup>
+    </nav>
+  );
+
   return (
     <>
       <SiteHeader />
 
       {onHome ? (
         <>
-          <nav aria-label="Sections" className="fixed top-1/2 right-4 z-[70] hidden -translate-y-1/2 lg:block xl:right-6">
+          <nav
+            aria-label="Sections"
+            className="pointer-events-none fixed inset-y-0 right-4 z-[70] hidden items-center lg:flex xl:right-6"
+          >
             <LayoutGroup>
-              <ul className="glass flex min-w-[11.5rem] max-h-[78vh] flex-col gap-0.5 overflow-y-auto rounded-3xl p-1.5 ring-1 ring-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="nav-glass pointer-events-auto rounded-3xl p-1.5">
+                <ul className="flex min-w-[11.5rem] max-h-[78vh] flex-col gap-0.5 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {items.map((item) => {
                   const isActive = active === item.key;
                   return (
@@ -101,43 +145,12 @@ export function SiteControls({
                     </li>
                   );
                 })}
-              </ul>
+                </ul>
+              </div>
             </LayoutGroup>
           </nav>
 
-          <nav
-            aria-label="Sections"
-            className="fixed inset-x-0 bottom-0 z-[70] flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden"
-          >
-            <LayoutGroup>
-              <ul className="glass flex min-w-0 max-w-full items-center gap-0.5 overflow-x-auto rounded-full px-1.5 py-1 ring-1 ring-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {items.map((item) => {
-                  const isActive = active === item.key;
-                  return (
-                    <li key={item.key} className="shrink-0">
-                      <button
-                        type="button"
-                        aria-label={navLabel(item)}
-                        aria-current={isActive ? "true" : undefined}
-                        onClick={() => go(item.key)}
-                        className={cn("sidenav-item w-auto min-h-11 min-w-11 justify-center gap-2 px-3")}
-                      >
-                        {isActive ? (
-                          <motion.span
-                            layoutId="nav-active-mobile"
-                            className="sidenav-active"
-                            transition={{ type: "tween", duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-                          />
-                        ) : null}
-                        <span className="sidenav-dot relative z-[1]" />
-                        {isActive ? <span className="relative z-[1]">{navLabel(item)}</span> : null}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </LayoutGroup>
-          </nav>
+          {mounted ? createPortal(mobileNav, document.body) : mobileNav}
         </>
       ) : null}
     </>

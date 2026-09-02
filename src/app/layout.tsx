@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Geist_Mono, Manrope, Syne } from "next/font/google";
 import Script from "next/script";
@@ -7,6 +7,10 @@ import { InvertCursor } from "@/components/site/invert-cursor";
 import { ThemeProvider } from "@/components/site/theme-provider";
 import { THEME_BOOTSTRAP } from "@/lib/theme-script";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: {
