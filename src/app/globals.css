@@ -84,6 +84,13 @@ body {
   -webkit-backdrop-filter: blur(22px) saturate(1.2);
 }
 
+.site-header {
+  background: color-mix(in oklab, var(--background) 62%, transparent);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border-bottom: 1px solid color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+
 .hero-copy {
   background:
     linear-gradient(

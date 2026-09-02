@@ -76,7 +76,7 @@ export function SiteControls({
         <>
           <nav aria-label="Sections" className="fixed top-1/2 right-4 z-[70] hidden -translate-y-1/2 lg:block xl:right-6">
             <LayoutGroup>
-              <ul className="flex min-w-[11.5rem] max-h-[78vh] flex-col gap-0.5 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <ul className="glass flex min-w-[11.5rem] max-h-[78vh] flex-col gap-0.5 overflow-y-auto rounded-3xl p-1.5 ring-1 ring-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {items.map((item) => {
                   const isActive = active === item.key;
                   return (
@@ -110,7 +110,7 @@ export function SiteControls({
             className="fixed inset-x-0 bottom-0 z-[70] flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden"
           >
             <LayoutGroup>
-              <ul className="flex min-w-0 max-w-full items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <ul className="glass flex min-w-0 max-w-full items-center gap-0.5 overflow-x-auto rounded-full px-1.5 py-1 ring-1 ring-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {items.map((item) => {
                   const isActive = active === item.key;
                   return (
