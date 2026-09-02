@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { SiteHeader } from "@/components/site/site-header";
-import { cn } from "@/lib/utils";
 import type { ProfileDoc, SectionDoc } from "@/types";
 
 function navLabel(item: SectionDoc) {
@@ -78,17 +77,17 @@ export function SiteControls({
   const mobileNav = (
     <nav aria-label="Sections" className="nav-glass mobile-nav lg:hidden">
       <LayoutGroup>
-        <ul className="flex min-w-0 max-w-full items-center justify-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <ul className="flex w-full min-w-0 items-center gap-px">
           {items.map((item) => {
             const isActive = active === item.key;
             return (
-              <li key={item.key} className="shrink-0">
+              <li key={item.key}>
                 <button
                   type="button"
                   aria-label={navLabel(item)}
                   aria-current={isActive ? "true" : undefined}
                   onClick={() => go(item.key)}
-                  className={cn("sidenav-item w-auto min-h-11 min-w-11 justify-center gap-2 px-3")}
+                  className="sidenav-item"
                 >
                   {isActive ? (
                     <motion.span
@@ -98,7 +97,9 @@ export function SiteControls({
                     />
                   ) : null}
                   <span className="sidenav-dot relative z-[1]" />
-                  {isActive ? <span className="relative z-[1]">{navLabel(item)}</span> : null}
+                  {isActive ? (
+                    <span className="relative z-[1] max-w-[4.5rem] truncate">{navLabel(item)}</span>
+                  ) : null}
                 </button>
               </li>
             );
