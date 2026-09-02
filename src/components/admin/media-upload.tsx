@@ -1,0 +1,247 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { ImagePlus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { ImageCropDialog } from "@/components/admin/image-crop-dialog";
+import { MediaProgress } from "@/components/admin/media-progress";
+import { Button } from "@/components/ui/button";
+import { cropFormatFor, cropToFile } from "@/lib/crop-image";
+import { cn } from "@/lib/utils";
+import type { Area } from "react-easy-crop";
+
+const ACCEPT = "image/jpeg,image/png,image/webp,image/gif,image/avif";
+
+const ASPECT = {
+  portrait: "aspect-[4/5]",
+  cover: "aspect-[16/9]",
+  square: "aspect-square",
+} as const;
+
+function postMedia(file: File, onProgress: (percent: number) => void) {
+  return new Promise<{ ok: boolean; url?: string; error?: string }>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/upload");
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return;
+      onProgress(Math.round((event.loaded / event.total) * 100));
+    };
+    xhr.onload = () => {
+      try {
+        const data = JSON.parse(xhr.responseText || "{}") as { url?: string; error?: string };
+        resolve({
+          ok: xhr.status >= 200 && xhr.status < 300,
+          url: data.url,
+          error: data.error,
+        });
+      } catch {
+        resolve({ ok: false, error: "Upload failed" });
+      }
+    };
+    xhr.onerror = () => reject(new Error("Upload failed"));
+    const body = new FormData();
+    body.append("file", file);
+    xhr.send(body);
+  });
+}
+
+export function MediaUpload({
+  value,
+  onChange,
+  onBusyChange,
+  label,
+  hint,
+  aspect = "square",
+}: {
+  value?: string;
+  onChange: (url: string) => void;
+  onBusyChange?: (busy: boolean) => void;
+  label: string;
+  hint?: string;
+  aspect?: keyof typeof ASPECT;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [phase, setPhase] = useState<"upload" | "remove" | null>(null);
+  const [status, setStatus] = useState("");
+  const [percent, setPercent] = useState<number | null>(null);
+  const [error, setError] = useState("");
+  const [preview, setPreview] = useState(value ?? "");
+  const [cropSrc, setCropSrc] = useState("");
+  const [sourceName, setSourceName] = useState("image");
+  const localUrl = useRef("");
+
+  useEffect(() => {
+    setPreview(value ?? "");
+  }, [value]);
+
+  useEffect(() => {
+    return () => {
+      if (localUrl.current) URL.revokeObjectURL(localUrl.current);
+    };
+  }, []);
+
+  function startBusy(next: "upload" | "remove", nextStatus: string, nextPercent: number | null = null) {
+    setBusy(true);
+    setPhase(next);
+    setStatus(nextStatus);
+    setPercent(nextPercent);
+    onBusyChange?.(true);
+  }
+
+  function stopBusy() {
+    setBusy(false);
+    setPhase(null);
+    setStatus("");
+    setPercent(null);
+    onBusyChange?.(false);
+  }
+
+  function closeCrop() {
+    if (localUrl.current) URL.revokeObjectURL(localUrl.current);
+    localUrl.current = "";
+    setCropSrc("");
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  function onFile(file?: File) {
+    if (!file || busy) return;
+    if (localUrl.current) URL.revokeObjectURL(localUrl.current);
+    localUrl.current = URL.createObjectURL(file);
+    setSourceName(file.name);
+    setCropSrc(localUrl.current);
+    setError("");
+  }
+
+  async function removeCurrent() {
+    const url = value || preview;
+    startBusy("remove", "Removing");
+    setError("");
+    try {
+      if (url && !url.startsWith("blob:")) {
+        const res = await fetch("/api/upload", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          toast.error(data.error || "Could not remove image");
+          return;
+        }
+      }
+      onChange("");
+      setPreview("");
+    } catch {
+      toast.error("Could not remove image");
+    } finally {
+      stopBusy();
+    }
+  }
+
+  async function applyCrop(area: Area) {
+    startBusy("upload", "Preparing");
+    setError("");
+    const previous = value && !value.startsWith("blob:") ? value : "";
+    try {
+      const file = await cropToFile(
+        cropSrc,
+        area,
+        sourceName,
+        aspect === "cover" ? 1920 : 1600,
+        cropFormatFor(sourceName, aspect),
+      );
+      setStatus("Uploading");
+      setPercent(0);
+      const data = await postMedia(file, setPercent);
+      if (!data.ok || typeof data.url !== "string" || data.url.startsWith("blob:")) {
+        setError(data.error || "Upload failed");
+        toast.error(data.error || "Upload failed");
+        return;
+      }
+      setPercent(100);
+      if (previous && previous !== data.url) {
+        setStatus("Finishing");
+        setPercent(null);
+        await fetch("/api/upload", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: previous }),
+        }).catch(() => undefined);
+      }
+      onChange(data.url);
+      setPreview(data.url);
+      closeCrop();
+    } catch {
+      setError("Upload failed");
+      toast.error("Upload failed");
+    } finally {
+      stopBusy();
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-foreground/80">{label}</p>
+          {hint ? <p className="mt-0.5 text-[11px] text-muted">{hint}</p> : null}
+        </div>
+        {preview ? (
+          <Button type="button" variant="ghost" size="sm" onClick={removeCurrent} disabled={busy}>
+            <Trash2 className="h-3.5 w-4" />
+            {phase === "remove" ? "Removing…" : "Remove"}
+          </Button>
+        ) : null}
+      </div>
+      <label
+        className={cn(
+          "relative flex cursor-pointer overflow-hidden rounded-3xl ring-1 ring-border transition-colors",
+          ASPECT[aspect],
+          "bg-background/50 hover:ring-foreground/30",
+          busy && "pointer-events-none",
+        )}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          onFile(event.dataTransfer.files?.[0]);
+        }}
+      >
+        {preview ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={preview} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <div className="media-ph absolute inset-0 grid place-items-center">
+            <div className="px-4 text-center">
+              <ImagePlus className="mx-auto h-5 w-5 text-muted" />
+              <p className="mt-2 text-sm">Drop an image or click to crop and upload</p>
+            </div>
+          </div>
+        )}
+        <input
+          ref={inputRef}
+          type="file"
+          accept={ACCEPT}
+          disabled={busy}
+          className="absolute inset-0 cursor-pointer opacity-0"
+          onChange={(event) => onFile(event.target.files?.[0])}
+        />
+        {busy && phase === "remove" ? <MediaProgress label={status} /> : null}
+      </label>
+      {busy && phase === "upload" && !cropSrc ? <p className="text-xs text-muted">{status}{typeof percent === "number" ? ` ${percent}%` : "…"}</p> : null}
+      {error ? <p className="text-xs text-red-400">{error}</p> : null}
+      {cropSrc ? (
+        <ImageCropDialog
+          src={cropSrc}
+          aspect={aspect}
+          title={label.toLowerCase()}
+          busy={busy}
+          status={status}
+          percent={percent}
+          onCancel={closeCrop}
+          onConfirm={applyCrop}
+        />
+      ) : null}
+    </div>
+  );
+}
