@@ -13,6 +13,7 @@ import {
   Section,
   Skill,
   Training,
+  ContactMessage,
 } from "@/models";
 import type { CustomItemDoc, PortfolioData, ProjectDoc } from "@/types";
 
@@ -129,6 +130,16 @@ export async function getCustomAdminNav(): Promise<{ key: string; label: string 
     );
   } catch {
     return [];
+  }
+}
+
+export async function getInboxUnreadCount(): Promise<number> {
+  if (!hasMongoUri()) return 0;
+  try {
+    await dbConnect();
+    return ContactMessage.countDocuments({ status: "unread" });
+  } catch {
+    return 0;
   }
 }
 

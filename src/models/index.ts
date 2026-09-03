@@ -1,6 +1,7 @@
 import { User } from "@/models/user";
 import { Profile } from "@/models/profile";
 import { Section } from "@/models/section";
+import { ContactMessage } from "@/models/contact-message";
 import {
   Affiliation,
   Certificate,
@@ -24,6 +25,7 @@ export const models = {
   Project,
   Skill,
   CustomItem,
+  ContactMessage,
 };
 
 export {
@@ -38,4 +40,5 @@ export {
   Project,
   Skill,
   CustomItem,
+  ContactMessage,
 };

@@ -44,6 +44,19 @@ export function formatDate(value?: string | null) {
   });
 }
 
+export function formatDateTime(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function idOf(item: { _id?: unknown; id?: unknown }) {
   return String(item._id ?? item.id ?? "");
 }

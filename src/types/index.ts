@@ -102,6 +102,26 @@ export type ProjectDoc = ItemBase & {
   images?: string[];
 };
 
+export type ContactMessageStatus = "unread" | "read" | "archived";
+
+export type ContactReplyDoc = {
+  html: string;
+  text: string;
+  createdAt: string;
+};
+
+export type ContactMessageDoc = {
+  _id: string;
+  name: string;
+  email: string;
+  message: string;
+  status: ContactMessageStatus;
+  readAt?: string | null;
+  replies: ContactReplyDoc[];
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type SkillDoc = {
   _id: string;
   name: string;

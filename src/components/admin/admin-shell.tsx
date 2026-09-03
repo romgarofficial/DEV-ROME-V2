@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LayoutList,
   Layers3,
+  Inbox,
   LogOut,
   Mail,
   Menu,
@@ -32,6 +33,7 @@ const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/profile", label: "Profile", icon: UserRound },
   { href: "/admin/contact", label: "Contact", icon: Mail },
+  { href: "/admin/inbox", label: "Inbox", icon: Inbox },
   { href: "/admin/account", label: "Account", icon: KeyRound },
   { href: "/admin/sections", label: "Sections", icon: Layers3 },
   { href: "/admin/experience", label: "Experience", icon: Briefcase },
@@ -55,11 +57,13 @@ export function AdminShell({
   email,
   name,
   customNav = [],
+  unreadCount = 0,
   children,
 }: {
   email: string;
   name?: string;
   customNav?: { key: string; label: string }[];
+  unreadCount?: number;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -160,6 +164,11 @@ export function AdminShell({
                   {active ? <span className="sidenav-active" /> : null}
                   <Icon className="relative z-[1] h-4 w-4 shrink-0" />
                   <span className="relative z-[1]">{item.label}</span>
+                  {item.href === "/admin/inbox" && unreadCount > 0 ? (
+                    <span className="relative z-[1] ml-auto min-w-5 rounded-full bg-accent px-1.5 py-px text-center text-[10px] font-semibold text-accent-fg">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  ) : null}
                 </Link>
               );
             })}

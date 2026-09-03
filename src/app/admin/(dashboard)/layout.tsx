@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { getSession } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
-import { getCustomAdminNav } from "@/lib/portfolio";
+import { getCustomAdminNav, getInboxUnreadCount } from "@/lib/portfolio";
 import { User } from "@/models";
 
 export const dynamic = "force-dynamic";
@@ -21,13 +21,19 @@ export default async function DashboardLayout({
   const session = await getSession();
   if (!session) redirect("/admin/login");
   await dbConnect();
-  const [customNav, user] = await Promise.all([
+  const [customNav, user, unreadCount] = await Promise.all([
     getCustomAdminNav(),
     User.findById(session.sub).select("email name").lean(),
+    getInboxUnreadCount(),
   ]);
 
   return (
-    <AdminShell email={user?.email || session.email} name={user?.name} customNav={customNav}>
+    <AdminShell
+      email={user?.email || session.email}
+      name={user?.name}
+      customNav={customNav}
+      unreadCount={unreadCount}
+    >
       {children}
     </AdminShell>
   );

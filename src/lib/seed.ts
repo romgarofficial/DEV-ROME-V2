@@ -4,6 +4,7 @@ import { dbConnect } from "@/lib/db";
 import {
   Affiliation,
   Certificate,
+  ContactMessage,
   Education,
   Experience,
   Profile,
@@ -59,6 +60,7 @@ export async function seedAll(force = false) {
       Training.deleteMany({}),
       Project.deleteMany({}),
       Skill.deleteMany({}),
+      ContactMessage.deleteMany({}),
     ]);
   }
 
