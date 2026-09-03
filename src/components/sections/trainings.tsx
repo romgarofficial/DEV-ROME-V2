@@ -26,7 +26,8 @@ export function TrainingsSection({
               src={item.imageUrl}
               alt={training}
               label="Training"
-              className="aspect-[16/10] w-full rounded-none ring-0"
+              fit="contain"
+              className="aspect-[16/10] w-full rounded-none ring-0 bg-white"
               sizes="(min-width: 640px) 40vw, 100vw"
             />
           );

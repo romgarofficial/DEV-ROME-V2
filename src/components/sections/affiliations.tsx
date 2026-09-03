@@ -26,7 +26,8 @@ export function AffiliationsSection({
               src={item.imageUrl}
               alt={org}
               label="Org"
-              className="h-16 w-16 rounded-2xl"
+              fit="contain"
+              className="h-16 w-16 rounded-2xl bg-white"
               sizes="64px"
             />
           );

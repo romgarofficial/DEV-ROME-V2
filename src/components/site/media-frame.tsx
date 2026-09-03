@@ -38,7 +38,7 @@ export function MediaFrame({
       className={cn("relative overflow-hidden rounded-3xl ring-1 ring-border", className)}
     >
       {src ? (
-        <CoverMedia src={src} alt={alt} className={fit === "contain" ? "object-contain p-2.5" : undefined} />
+        <CoverMedia src={src} alt={alt} className={fit === "contain" ? "object-contain p-[12%]" : undefined} />
       ) : (
         <div className="media-ph absolute inset-0 grid place-items-center">
           <div className="px-4 text-center">

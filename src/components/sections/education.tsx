@@ -26,7 +26,8 @@ export function EducationSection({
               src={item.imageUrl}
               alt={school}
               label="School"
-              className="aspect-[4/3] w-full"
+              fit="contain"
+              className="aspect-square w-full bg-white"
               sizes="220px"
             />
           );

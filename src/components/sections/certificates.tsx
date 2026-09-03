@@ -26,7 +26,8 @@ export function CertificatesSection({
               src={item.imageUrl}
               alt={certName}
               label="Certificate"
-              className="aspect-[16/10] w-full rounded-none ring-0"
+              fit="contain"
+              className="aspect-[16/10] w-full rounded-none ring-0 bg-white"
               sizes="(min-width: 640px) 40vw, 100vw"
             />
           );
