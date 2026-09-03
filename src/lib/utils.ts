@@ -26,7 +26,7 @@ export function formatDateRange(
   const startLabel = formatDate(start);
   if (current) return startLabel ? `${startLabel} — Present` : "Present";
   const endLabel = formatDate(end);
-  if (startLabel && endLabel) return `${startLabel} — ${endLabel}`;
+  if (startLabel && endLabel) return startLabel === endLabel ? startLabel : `${startLabel} — ${endLabel}`;
   return startLabel || endLabel || "";
 }
 
@@ -38,6 +38,7 @@ export function formatDate(value?: string | null) {
   }
   return date.toLocaleDateString("en-US", {
     month: "short",
+    day: "numeric",
     year: "numeric",
     timeZone: "UTC",
   });
