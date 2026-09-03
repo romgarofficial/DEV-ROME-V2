@@ -1,5 +1,6 @@
 import { requireAdmin, unauthorized } from "@/lib/api";
 import { dbConnect } from "@/lib/db";
+import { mailStatus } from "@/lib/mail";
 import { serialize } from "@/lib/utils";
 import { ContactMessage } from "@/models";
 import type { ContactMessageStatus } from "@/models/contact-message";
@@ -25,5 +26,6 @@ export async function GET(request: Request) {
     items: serialize(items),
     unreadCount,
     archivedCount,
+    mail: mailStatus(),
   });
 }

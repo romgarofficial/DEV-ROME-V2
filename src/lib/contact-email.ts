@@ -132,45 +132,6 @@ export function contactEmailHtml(input: { name: string; email: string; message: 
   });
 }
 
-export function acknowledgementEmailSubject() {
-  return "DEVELOPER PORTFOLIO - We received your message";
-}
-
-export function acknowledgementEmailText(input: { name: string; message: string }) {
-  const who = input.name.trim() || "there";
-  return [
-    "ROME · Developer portfolio",
-    "",
-    `Hi ${who},`,
-    "",
-    "I've received your message and I'll get back to you as soon as I can.",
-    "If you don't see this note in your inbox, please check your spam or junk folder — some providers hide first-time senders.",
-    "",
-    "Your message:",
-    input.message,
-    "",
-    siteUrl(),
-  ].join("\n");
-}
-
-export function acknowledgementEmailHtml(input: { name: string; message: string }) {
-  const who = escapeHtml(input.name.trim() || "there");
-  const quote = escapeHtml(input.message).replaceAll("\n", "<br />");
-  const body = `<p style="margin:0 0 12px;">Hi ${who},</p>
-                    <p style="margin:0 0 12px;">I've received your message and I'll get back to you as soon as I can.</p>
-                    <p style="margin:0 0 16px;">If you don't see this note in your inbox, please check your spam or junk folder — some providers hide first-time senders.</p>
-                    <p style="margin:0 0 8px;font-family:Manrope,Segoe UI,sans-serif;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:#6d6a66;">Your message</p>
-                    ${quote}`;
-
-  return portfolioEmailHtml({
-    documentTitle: acknowledgementEmailSubject(),
-    kicker: "Thank you",
-    heading: "Message received",
-    bodyHtml: body,
-    cta: { href: siteUrl(), label: "Visit the site" },
-  });
-}
-
 export function inboxReplyEmailSubject() {
   return "DEVELOPER PORTFOLIO - Reply from ROME";
 }

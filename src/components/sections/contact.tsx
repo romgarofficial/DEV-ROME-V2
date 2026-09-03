@@ -235,10 +235,7 @@ export function ContactForm({
               ) : null}
               .
             </span>
-            <span className="block">
-              You’ll also receive a short acknowledgement email so you know it landed. Please check your spam or junk
-              folder if you don’t see it — some inboxes hide first-time senders.
-            </span>
+            <span className="block">I’ll reply by email as soon as I can.</span>
             <span className="block">Thanks for writing.</span>
           </DialogDescription>
           <div className="mt-6 flex justify-end">

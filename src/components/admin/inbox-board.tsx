@@ -8,6 +8,7 @@ import {
   MailOpen,
   Mail,
   Reply,
+  SquareArrowOutUpRight,
   Trash2,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -17,10 +18,22 @@ import { RichEditor, type RichEditorHandle } from "@/components/admin/rich-edito
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PageHeading } from "@/components/ui/page-heading";
+import { contactEmailSubject } from "@/lib/contact-email";
 import { cn, formatDateTime, idOf } from "@/lib/utils";
 import type { ContactMessageDoc } from "@/types";
 
 type Folder = "inbox" | "archived";
+type MailStatus = { configured: boolean; testSender: boolean };
+
+function mailtoReply(item: ContactMessageDoc) {
+  const subject = encodeURIComponent(`Re: ${contactEmailSubject(item.name)}`);
+  const quoted = item.message
+    .split("\n")
+    .map((line) => `> ${line}`)
+    .join("\n");
+  const body = encodeURIComponent(`\n\n---\nOn ${formatDateTime(item.createdAt)}, ${item.name} wrote:\n${quoted}`);
+  return `mailto:${item.email}?subject=${subject}&body=${body}`;
+}
 
 export function InboxBoard() {
   const router = useRouter();
@@ -29,6 +42,7 @@ export function InboxBoard() {
   const [items, setItems] = useState<ContactMessageDoc[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [archivedCount, setArchivedCount] = useState(0);
+  const [mail, setMail] = useState<MailStatus>({ configured: true, testSender: false });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -47,6 +61,7 @@ export function InboxBoard() {
     setItems(data.items ?? []);
     setUnreadCount(data.unreadCount ?? 0);
     setArchivedCount(data.archivedCount ?? 0);
+    if (data.mail) setMail(data.mail);
     return (data.items ?? []) as ContactMessageDoc[];
   }, []);
 
@@ -156,6 +171,19 @@ export function InboxBoard() {
         title="Inbox"
         description="Messages from the public contact form. You still get the email — this is the working copy."
       />
+
+      {mail.testSender ? (
+        <div className="rounded-3xl border border-accent/30 bg-accent/8 px-4 py-3 text-sm leading-6 text-foreground">
+          Acknowledgements and inbox replies cannot reach visitors yet. Resend is still on the test sender, which only
+          delivers to your Resend account. Verify a domain at{" "}
+          <a href="https://resend.com/domains" target="_blank" rel="noreferrer" className="text-accent underline-offset-2 hover:underline">
+            resend.com/domains
+          </a>
+          , then set <code className="text-xs">RESEND_FROM</code> to an address on that domain — for example{" "}
+          <code className="text-xs">ROME &lt;hello@mail.dev-rome.com&gt;</code>. Until then, use “Open in mail app” to
+          reply from Gmail.
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         <Button
@@ -312,6 +340,14 @@ export function InboxBoard() {
                       </Button>
                     </>
                   )}
+                  {selected.status !== "archived" ? (
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={mailtoReply(selected)}>
+                        <SquareArrowOutUpRight className="h-3.5 w-3.5" />
+                        Open in mail app
+                      </a>
+                    </Button>
+                  ) : null}
                   <Button type="button" variant="destructive" size="sm" onClick={() => setPendingDelete(selected)}>
                     <Trash2 className="h-3.5 w-3.5" />
                     Delete

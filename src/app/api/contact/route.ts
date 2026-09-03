@@ -1,6 +1,6 @@
 import { ContactSchema, contactFieldErrors } from "@/lib/contact-schema";
 import { dbConnect } from "@/lib/db";
-import { isMailConfigured, sendContactEmails } from "@/lib/mail";
+import { isMailConfigured, sendContactMessage } from "@/lib/mail";
 import { ContactMessage } from "@/models";
 
 export async function POST(request: Request) {
@@ -42,17 +42,16 @@ export async function POST(request: Request) {
   if (!isMailConfigured()) {
     if (process.env.NODE_ENV !== "production") {
       console.info("[contact:dev]", payload);
-    } else {
-      console.warn("[contact] mail not configured; saved to inbox only");
+      return Response.json({ ok: true, dev: true });
     }
-    return Response.json({ ok: true });
+    return Response.json({ error: "Contact email is not configured yet." }, { status: 503 });
   }
 
   try {
-    await sendContactEmails(payload);
+    await sendContactMessage(payload);
     return Response.json({ ok: true });
   } catch (error) {
     console.error("[contact]", error);
-    return Response.json({ ok: true, mailWarning: true });
+    return Response.json({ error: "Could not send the message. Try again in a moment." }, { status: 500 });
   }
 }

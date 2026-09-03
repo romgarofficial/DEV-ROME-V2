@@ -44,7 +44,10 @@ export async function POST(
     });
   } catch (error) {
     console.error("[inbox:reply]", error);
-    return Response.json({ error: "Could not send the reply. Try again in a moment." }, { status: 500 });
+    return Response.json(
+      { error: error instanceof Error ? error.message : "Could not send the reply. Try again in a moment." },
+      { status: 500 },
+    );
   }
 
   current.replies.push({ html, text, createdAt: new Date() });
