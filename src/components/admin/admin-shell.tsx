@@ -7,6 +7,7 @@ import {
   Briefcase,
   FolderGit2,
   GraduationCap,
+  KeyRound,
   LayoutDashboard,
   LayoutList,
   Layers3,
@@ -27,6 +28,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/profile", label: "Profile", icon: UserRound },
+  { href: "/admin/account", label: "Account", icon: KeyRound },
   { href: "/admin/sections", label: "Sections", icon: Layers3 },
   { href: "/admin/experience", label: "Experience", icon: Briefcase },
   { href: "/admin/education", label: "Education", icon: GraduationCap },
@@ -39,10 +41,12 @@ const NAV = [
 
 export function AdminShell({
   email,
+  name,
   customNav = [],
   children,
 }: {
   email: string;
+  name?: string;
   customNav?: { key: string; label: string }[];
   children: ReactNode;
 }) {
@@ -64,7 +68,8 @@ export function AdminShell({
             <div>
               <BrandMark href="/admin" />
               <p className="mt-1 text-[11px] tracking-[0.22em] text-muted uppercase">Admin</p>
-              <p className="mt-2 truncate text-xs text-muted">{email}</p>
+              {name ? <p className="mt-2 truncate text-sm">{name}</p> : null}
+              <p className={`truncate text-xs text-muted ${name ? "mt-0.5" : "mt-2"}`}>{email}</p>
             </div>
             <ThemeToggle className="lg:mt-5" />
           </div>

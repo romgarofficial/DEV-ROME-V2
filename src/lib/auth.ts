@@ -57,6 +57,15 @@ export async function setSessionCookie(token: string) {
   });
 }
 
+export async function establishSession(user: { _id: unknown; email: string }) {
+  const token = await signToken({
+    sub: String(user._id),
+    email: user.email,
+    role: "admin",
+  });
+  await setSessionCookie(token);
+}
+
 export async function clearSessionCookie() {
   const store = await cookies();
   store.delete(COOKIE_NAME);

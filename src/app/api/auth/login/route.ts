@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { setSessionCookie, signToken } from "@/lib/auth";
+import { establishSession } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
 import { ensureSeeded } from "@/lib/seed";
 import { User } from "@/models";
@@ -30,12 +30,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  const token = await signToken({
-    sub: String(user._id),
-    email: user.email,
-    role: "admin",
-  });
-  await setSessionCookie(token);
+  await establishSession(user);
 
   return Response.json({ ok: true, email: user.email });
 }
