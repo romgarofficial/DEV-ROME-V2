@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { MediaFrame } from "@/components/site/media-frame";
 import { MarkdownBody } from "@/components/site/markdown-body";
+import { ProjectGallery } from "@/components/sections/project-gallery";
 import { MediaReveal } from "@/lib/motion";
 import { getProjectBySlug } from "@/lib/portfolio";
 
@@ -58,6 +59,9 @@ export default async function ProjectPage({
         <div className="mt-10">
           <MarkdownBody>{project.description}</MarkdownBody>
         </div>
+      ) : null}
+      {project.images?.length ? (
+        <ProjectGallery images={project.images} title={project.title} />
       ) : null}
     </article>
   );

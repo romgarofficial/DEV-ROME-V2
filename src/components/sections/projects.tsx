@@ -21,6 +21,7 @@ export function ProjectsSection({
       <div className="grid gap-8 md:grid-cols-2">
         {items.map((item, i) => {
           const href = itemHref(item.liveUrl || item.url);
+          const thumbs = item.images?.slice(0, 4) ?? [];
 
           return (
             <Reveal key={item._id} delay={i * 0.07} className={cn("h-full", i === 0 && "md:col-span-2")}>
@@ -42,6 +43,28 @@ export function ProjectsSection({
                   <p className="mt-3 text-[11px] tracking-[0.16em] text-muted uppercase">{item.stack.join(" · ")}</p>
                 ) : null}
               </Link>
+              {thumbs.length > 0 ? (
+                <div className="mt-3 flex gap-2">
+                  {thumbs.map((url, j) => (
+                    <Link
+                      key={url}
+                      href={`/projects/${item.slug}`}
+                      className="relative aspect-[16/10] w-16 shrink-0 overflow-hidden rounded-lg ring-1 ring-border transition-all hover:ring-foreground/30 sm:w-20"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt={`${item.title} screenshot ${j + 1}`} className="h-full w-full object-cover" />
+                    </Link>
+                  ))}
+                  {(item.images?.length ?? 0) > 4 ? (
+                    <Link
+                      href={`/projects/${item.slug}`}
+                      className="flex aspect-[16/10] w-16 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-xs text-muted ring-1 ring-border sm:w-20"
+                    >
+                      +{(item.images?.length ?? 0) - 4}
+                    </Link>
+                  ) : null}
+                </div>
+              ) : null}
               {href ? (
                 <a
                   href={href}

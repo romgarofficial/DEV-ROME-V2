@@ -114,6 +114,7 @@ export const COLLECTION_CONFIG: Record<string, CollectionConfig> = {
       { name: "repoUrl", label: "Repo URL", type: "url" },
       { name: "liveUrl", label: "Live URL", type: "url" },
       { name: "coverUrl", label: "Cover image", type: "image" },
+      { name: "images", label: "Gallery", type: "gallery" },
       ...commonToggles,
     ],
   },

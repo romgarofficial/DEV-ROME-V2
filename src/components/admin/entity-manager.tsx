@@ -18,6 +18,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { GalleryUpload } from "@/components/admin/gallery-upload";
 import { MediaUpload } from "@/components/admin/media-upload";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -291,6 +292,16 @@ function FieldControl({
   if (field.type === "image") {
     return (
       <MediaUpload label={field.label} value={typeof value === "string" ? value : ""} onChange={onChange} />
+    );
+  }
+
+  if (field.type === "gallery") {
+    return (
+      <GalleryUpload
+        label={field.label}
+        value={Array.isArray(value) ? (value as string[]) : []}
+        onChange={onChange}
+      />
     );
   }
 

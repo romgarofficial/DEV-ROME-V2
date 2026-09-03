@@ -2,6 +2,7 @@ import { badRequest, notFound, requireAdmin, unauthorized } from "@/lib/api";
 import { getCollectionModel, isItemCollection } from "@/lib/collections";
 import { dbConnect } from "@/lib/db";
 import { revalidatePortfolio } from "@/lib/revalidate";
+import { deleteMedia } from "@/lib/upload";
 import { serialize, slugify } from "@/lib/utils";
 
 export async function PUT(
@@ -22,6 +23,18 @@ export async function PUT(
 
   await dbConnect();
   const Model = getCollectionModel(collection);
+
+  if (collection === "projects" && Array.isArray(body.images)) {
+    const existing = await Model.findById(id).lean();
+    if (existing) {
+      const old = (existing as Record<string, unknown>).images;
+      const oldImages = Array.isArray(old) ? (old as string[]) : [];
+      const newImages = new Set(body.images as string[]);
+      const removed = oldImages.filter((url) => !newImages.has(url));
+      await Promise.allSettled(removed.map((url) => deleteMedia(url)));
+    }
+  }
+
   const item = await Model.findByIdAndUpdate(id, body, { new: true }).lean();
   if (!item) return notFound();
   await revalidatePortfolio();
@@ -41,6 +54,20 @@ export async function DELETE(
   const Model = getCollectionModel(collection);
   const item = await Model.findByIdAndDelete(id).lean();
   if (!item) return notFound();
+
+  const record = item as Record<string, unknown>;
+  const mediaUrls: string[] = [];
+  if (typeof record.imageUrl === "string" && record.imageUrl) mediaUrls.push(record.imageUrl);
+  if (typeof record.coverUrl === "string" && record.coverUrl) mediaUrls.push(record.coverUrl);
+  if (Array.isArray(record.images)) {
+    for (const url of record.images) {
+      if (typeof url === "string" && url) mediaUrls.push(url);
+    }
+  }
+  if (mediaUrls.length) {
+    await Promise.allSettled(mediaUrls.map((url) => deleteMedia(url)));
+  }
+
   await revalidatePortfolio();
   return Response.json({ ok: true });
 }

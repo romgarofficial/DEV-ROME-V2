@@ -132,6 +132,7 @@ export type FieldType =
   | "number"
   | "tags"
   | "image"
+  | "gallery"
   | "select";
 
 export type FieldDef = {
