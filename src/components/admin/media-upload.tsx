@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ImagePlus, Trash2 } from "lucide-react";
+import { FileText, ImagePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ImageCropDialog } from "@/components/admin/image-crop-dialog";
 import { MediaProgress } from "@/components/admin/media-progress";
 import { Button } from "@/components/ui/button";
 import { cropFormatFor, cropToFile } from "@/lib/crop-image";
+import { fileLabelFromUrl } from "@/lib/item-href";
 import { cn } from "@/lib/utils";
 import type { Area } from "react-easy-crop";
 
-const ACCEPT = "image/jpeg,image/png,image/webp,image/gif,image/avif";
+const ACCEPT_IMAGE = "image/jpeg,image/png,image/webp,image/gif,image/avif";
+const ACCEPT_FILE = "application/pdf,.pdf";
 
 const ASPECT = {
   portrait: "aspect-[4/5]",
@@ -52,7 +54,8 @@ export function MediaUpload({
   label,
   hint,
   aspect = "square",
-  aspectSelectable = false,
+  aspectSelectable = true,
+  kind = "image",
 }: {
   value?: string;
   onChange: (url: string) => void;
@@ -61,6 +64,7 @@ export function MediaUpload({
   hint?: string;
   aspect?: keyof typeof ASPECT;
   aspectSelectable?: boolean;
+  kind?: "image" | "file";
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -107,13 +111,62 @@ export function MediaUpload({
     if (inputRef.current) inputRef.current.value = "";
   }
 
+  function isPdfFile(file: File) {
+    return file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+  }
+
   function onFile(file?: File) {
     if (!file || busy) return;
+    setError("");
+    if (kind === "file") {
+      if (!isPdfFile(file)) {
+        toast.error("Use a PDF file.");
+        setError("Use a PDF file.");
+        return;
+      }
+      uploadDirect(file);
+      return;
+    }
+    if (isPdfFile(file)) {
+      toast.error("PDFs belong in the PDF field — images only here.");
+      setError("Use a JPG, PNG, or WEBP image.");
+      return;
+    }
     if (localUrl.current) URL.revokeObjectURL(localUrl.current);
     localUrl.current = URL.createObjectURL(file);
     setSourceName(file.name);
     setCropSrc(localUrl.current);
-    setError("");
+  }
+
+  async function uploadDirect(file: File) {
+    const previous = value && !value.startsWith("blob:") ? value : "";
+    startBusy("upload", "Uploading", 0);
+    try {
+      const data = await postMedia(file, setPercent);
+      if (!data.ok || typeof data.url !== "string") {
+        setError(data.error || "Upload failed");
+        toast.error(data.error || "Upload failed");
+        return;
+      }
+      setPercent(100);
+      if (previous && previous !== data.url) {
+        setStatus("Finishing");
+        setPercent(null);
+        await fetch("/api/upload", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: previous }),
+        }).catch(() => undefined);
+      }
+      onChange(data.url);
+      setPreview(data.url);
+      if (inputRef.current) inputRef.current.value = "";
+    } catch {
+      setError("Upload failed");
+      toast.error("Upload failed");
+    } finally {
+      stopBusy();
+    }
   }
 
   async function removeCurrent() {
@@ -129,14 +182,14 @@ export function MediaUpload({
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          toast.error(data.error || "Could not remove image");
+          toast.error(data.error || (kind === "file" ? "Could not remove file" : "Could not remove image"));
           return;
         }
       }
       onChange("");
       setPreview("");
     } catch {
-      toast.error("Could not remove image");
+      toast.error(kind === "file" ? "Could not remove file" : "Could not remove image");
     } finally {
       stopBusy();
     }
@@ -201,7 +254,7 @@ export function MediaUpload({
       <label
         className={cn(
           "relative flex cursor-pointer overflow-hidden rounded-3xl ring-1 ring-border transition-colors",
-          ASPECT[frameAspect],
+          kind === "file" ? "min-h-24 items-center px-4 py-4" : ASPECT[frameAspect],
           "bg-background/50 hover:ring-foreground/30",
           busy && "pointer-events-none",
         )}
@@ -211,7 +264,22 @@ export function MediaUpload({
           onFile(event.dataTransfer.files?.[0]);
         }}
       >
-        {preview ? (
+        {kind === "file" ? (
+          preview ? (
+            <div className="flex min-w-0 items-center gap-3">
+              <FileText className="h-5 w-5 shrink-0 text-muted" />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">{fileLabelFromUrl(preview)}</p>
+                <p className="text-[11px] text-muted">PDF uploaded</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 text-sm text-muted">
+              <FileText className="h-5 w-5" />
+              Drop a PDF or click to upload
+            </div>
+          )
+        ) : preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={preview}
@@ -232,7 +300,7 @@ export function MediaUpload({
         <input
           ref={inputRef}
           type="file"
-          accept={ACCEPT}
+          accept={kind === "file" ? ACCEPT_FILE : ACCEPT_IMAGE}
           disabled={busy}
           className="absolute inset-0 cursor-pointer opacity-0"
           onChange={(event) => onFile(event.target.files?.[0])}
@@ -241,7 +309,7 @@ export function MediaUpload({
       </label>
       {busy && phase === "upload" && !cropSrc ? <p className="text-xs text-muted">{status}{typeof percent === "number" ? ` ${percent}%` : "…"}</p> : null}
       {error ? <p className="text-xs text-red-400">{error}</p> : null}
-      {cropSrc ? (
+      {cropSrc && kind === "image" ? (
         <ImageCropDialog
           src={cropSrc}
           aspect={aspect}

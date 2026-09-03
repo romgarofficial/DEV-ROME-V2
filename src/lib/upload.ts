@@ -5,8 +5,12 @@ import path from "path";
 import { uploadDir } from "@/lib/upload-path";
 
 const FOLDER = "rome-portfolio";
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
 const MAX_BYTES = 8 * 1024 * 1024;
+
+function isPdfFile(file: File) {
+  return file.type === "application/pdf" || /\.pdf$/i.test(file.name || "");
+}
 
 function env(name: string) {
   return process.env[name]?.trim() || "";
@@ -38,16 +42,18 @@ export function cloudinaryPublicId(url: string) {
   try {
     const parsed = new URL(url);
     if (parsed.hostname !== "res.cloudinary.com") return null;
-    const marker = "/image/upload/";
-    const idx = parsed.pathname.indexOf(marker);
-    if (idx === -1) return null;
-    const parts = parsed.pathname.slice(idx + marker.length).split("/").filter(Boolean);
+    const match = parsed.pathname.match(/\/(image|raw|video|auto)\/upload\//);
+    if (!match || match.index === undefined) return null;
+    const resourceType = match[1] === "auto" ? "image" : match[1];
+    const rest = parsed.pathname.slice(match.index + match[0].length);
+    const parts = rest.split("/").filter(Boolean);
     let i = 0;
     while (i < parts.length && parts[i].includes(",")) i += 1;
     if (i < parts.length && /^v\d+$/.test(parts[i])) i += 1;
-    const id = parts.slice(i).join("/").replace(/\.[a-zA-Z0-9]+$/, "");
+    const joined = parts.slice(i).join("/");
+    const id = resourceType === "raw" ? joined : joined.replace(/\.[a-zA-Z0-9]+$/, "");
     if (!id.startsWith(`${FOLDER}/`)) return null;
-    return id;
+    return { publicId: id, resourceType };
   } catch {
     return null;
   }
@@ -60,10 +66,11 @@ export function localUploadName(url: string) {
 
 export async function uploadMedia(file: File) {
   if (file.size === 0) throw new Error("That file is empty.");
-  if (file.size > MAX_BYTES) throw new Error("Images must be 8MB or smaller.");
+  if (file.size > MAX_BYTES) throw new Error("Files must be 8MB or smaller.");
   const type = file.type || "";
-  if (type && !ALLOWED_TYPES.has(type) && !type.startsWith("image/")) {
-    throw new Error("Use a JPG, PNG, WEBP, or GIF image.");
+  const pdf = isPdfFile(file);
+  if (type && !pdf && !ALLOWED_IMAGE_TYPES.has(type) && !type.startsWith("image/")) {
+    throw new Error("Use a JPG, PNG, WEBP, GIF, or PDF.");
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
@@ -74,8 +81,8 @@ export async function uploadMedia(file: File) {
       const stream = cloudinary.uploader.upload_stream(
         {
           folder: FOLDER,
-          resource_type: "image",
-          ...(file.type === "image/png" ? { format: "png" } : {}),
+          resource_type: pdf ? "raw" : "image",
+          ...(!pdf && file.type === "image/png" ? { format: "png" } : {}),
         },
         (error, uploaded) => {
           if (error || !uploaded) reject(error ?? new Error("Upload failed"));
@@ -91,7 +98,9 @@ export async function uploadMedia(file: File) {
     throw new Error("Cloudinary is required in production. Set CLOUDINARY_* env vars.");
   }
 
-  const ext = path.extname(file.name || "").toLowerCase() || (type === "image/png" ? ".png" : ".jpg");
+  const ext =
+    path.extname(file.name || "").toLowerCase() ||
+    (pdf ? ".pdf" : type === "image/png" ? ".png" : ".jpg");
   const filename = `${randomUUID()}${ext}`;
   const dir = uploadDir();
   await mkdir(dir, { recursive: true });
@@ -100,11 +109,11 @@ export async function uploadMedia(file: File) {
 }
 
 export async function deleteMedia(url: string) {
-  const publicId = cloudinaryPublicId(url);
-  if (publicId) {
+  const ref = cloudinaryPublicId(url);
+  if (ref) {
     if (!cloudinaryConfigured()) return;
     configureCloudinary();
-    await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
+    await cloudinary.uploader.destroy(ref.publicId, { resource_type: ref.resourceType });
     return;
   }
 

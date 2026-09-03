@@ -9,3 +9,20 @@ export function itemHref(url?: string): string {
   if (/^https?:\/\//i.test(value)) return value;
   return `https://${value}`;
 }
+
+export function isPdfUrl(url?: string) {
+  const value = url?.trim() || "";
+  if (!value) return false;
+  return /\.pdf($|\?)/i.test(value) || value.includes("/raw/upload/");
+}
+
+export function fileLabelFromUrl(url?: string) {
+  const value = url?.trim() || "";
+  if (!value) return "PDF";
+  try {
+    const name = decodeURIComponent(new URL(value, "http://local.invalid").pathname.split("/").pop() || "");
+    return name || "PDF";
+  } catch {
+    return "PDF";
+  }
+}

@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const file = form.get("file");
   if (!isUploadFile(file) || file.size === 0) {
-    return Response.json({ error: "Choose an image to upload" }, { status: 400 });
+    return Response.json({ error: "Choose a file to upload" }, { status: 400 });
   }
 
   try {

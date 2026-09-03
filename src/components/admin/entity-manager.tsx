@@ -307,6 +307,19 @@ function FieldControl({
     );
   }
 
+  if (field.type === "file") {
+    return (
+      <MediaUpload
+        kind="file"
+        label={field.label}
+        hint="PDF only — no crop."
+        value={typeof value === "string" ? value : ""}
+        onChange={onChange}
+        aspectSelectable={false}
+      />
+    );
+  }
+
   if (field.type === "image") {
     return (
       <MediaUpload
@@ -314,7 +327,7 @@ function FieldControl({
         value={typeof value === "string" ? value : ""}
         onChange={onChange}
         aspect={field.aspect ?? "square"}
-        aspectSelectable={field.aspectSelectable}
+        aspectSelectable={field.aspectSelectable ?? true}
       />
     );
   }

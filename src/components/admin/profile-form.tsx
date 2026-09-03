@@ -102,16 +102,18 @@ export function ProfileForm({ initial }: { initial: ProfileDoc | null }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <MediaUpload
               label="Portrait"
-              hint="Right side of the hero. Cropped to 4:5."
-              aspect="portrait"
+              hint="Right side of the hero. Choose landscape or square."
+              aspect="square"
+              aspectSelectable
               value={form.photoUrl}
               onChange={(url) => set("photoUrl", url)}
               onBusyChange={(busy) => setUploading((count) => Math.max(0, count + (busy ? 1 : -1)))}
             />
             <MediaUpload
               label="Background / cover"
-              hint="Soft full-bleed behind the hero. Cropped to 16:9."
+              hint="Soft full-bleed behind the hero. Choose landscape or square."
               aspect="cover"
+              aspectSelectable
               value={form.backgroundUrl}
               onChange={(url) => set("backgroundUrl", url)}
               onBusyChange={(busy) => setUploading((count) => Math.max(0, count + (busy ? 1 : -1)))}

@@ -59,6 +59,7 @@ export async function DELETE(
   const mediaUrls: string[] = [];
   if (typeof record.imageUrl === "string" && record.imageUrl) mediaUrls.push(record.imageUrl);
   if (typeof record.coverUrl === "string" && record.coverUrl) mediaUrls.push(record.coverUrl);
+  if (typeof record.fileUrl === "string" && record.fileUrl) mediaUrls.push(record.fileUrl);
   if (Array.isArray(record.images)) {
     for (const url of record.images) {
       if (typeof url === "string" && url) mediaUrls.push(url);

@@ -367,8 +367,9 @@ function SectionDialog({
               </div>
               <MediaUpload
                 label="Image"
-                hint="Optional. Cropped to 16:9."
+                hint="Optional. Choose landscape or square."
                 aspect="cover"
+                aspectSelectable
                 value={form.imageUrl}
                 onBusyChange={setUploadBusy}
                 onChange={(imageUrl) => setForm((current) => ({ ...current, imageUrl }))}
