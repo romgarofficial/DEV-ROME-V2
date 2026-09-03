@@ -36,7 +36,9 @@ export default async function ProjectPage({
           src={project.coverUrl}
           alt={project.title}
           label="Project cover"
-          className="aspect-[16/8] w-full"
+          fit="contain"
+          padded={false}
+          className="aspect-[16/9] w-full bg-black/80"
           sizes="100vw"
         />
       </MediaReveal>

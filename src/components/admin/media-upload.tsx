@@ -52,6 +52,7 @@ export function MediaUpload({
   label,
   hint,
   aspect = "square",
+  aspectSelectable = false,
 }: {
   value?: string;
   onChange: (url: string) => void;
@@ -59,6 +60,7 @@ export function MediaUpload({
   label: string;
   hint?: string;
   aspect?: keyof typeof ASPECT;
+  aspectSelectable?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -69,6 +71,7 @@ export function MediaUpload({
   const [preview, setPreview] = useState(value ?? "");
   const [cropSrc, setCropSrc] = useState("");
   const [sourceName, setSourceName] = useState("image");
+  const [frameAspect, setFrameAspect] = useState<keyof typeof ASPECT>(aspect);
   const localUrl = useRef("");
 
   useEffect(() => {
@@ -139,7 +142,7 @@ export function MediaUpload({
     }
   }
 
-  async function applyCrop(area: Area) {
+  async function applyCrop(area: Area, nextAspect: keyof typeof ASPECT) {
     startBusy("upload", "Preparing");
     setError("");
     const previous = value && !value.startsWith("blob:") ? value : "";
@@ -148,8 +151,8 @@ export function MediaUpload({
         cropSrc,
         area,
         sourceName,
-        aspect === "cover" ? 1920 : 1600,
-        cropFormatFor(sourceName, aspect),
+        nextAspect === "cover" ? 1920 : 1600,
+        cropFormatFor(sourceName, nextAspect),
       );
       setStatus("Uploading");
       setPercent(0);
@@ -171,6 +174,7 @@ export function MediaUpload({
       }
       onChange(data.url);
       setPreview(data.url);
+      setFrameAspect(nextAspect);
       closeCrop();
     } catch {
       setError("Upload failed");
@@ -197,7 +201,7 @@ export function MediaUpload({
       <label
         className={cn(
           "relative flex cursor-pointer overflow-hidden rounded-3xl ring-1 ring-border transition-colors",
-          ASPECT[aspect],
+          ASPECT[frameAspect],
           "bg-background/50 hover:ring-foreground/30",
           busy && "pointer-events-none",
         )}
@@ -209,7 +213,14 @@ export function MediaUpload({
       >
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img
+            src={preview}
+            alt=""
+            className={cn(
+              "absolute inset-0 h-full w-full",
+              aspectSelectable || frameAspect === "cover" ? "object-contain bg-black/80" : "object-cover",
+            )}
+          />
         ) : (
           <div className="media-ph absolute inset-0 grid place-items-center">
             <div className="px-4 text-center">
@@ -238,6 +249,7 @@ export function MediaUpload({
           busy={busy}
           status={status}
           percent={percent}
+          selectable={aspectSelectable}
           onCancel={closeCrop}
           onConfirm={applyCrop}
         />

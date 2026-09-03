@@ -22,6 +22,7 @@ import { GalleryUpload } from "@/components/admin/gallery-upload";
 import { MediaUpload } from "@/components/admin/media-upload";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input, Label, Textarea } from "@/components/ui/fields";
 import { PageHeading } from "@/components/ui/page-heading";
@@ -36,6 +37,8 @@ export function EntityManager({ config }: { config: CollectionConfig }) {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Item | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   useEffect(() => {
@@ -73,14 +76,16 @@ export function EntityManager({ config }: { config: CollectionConfig }) {
     });
   }
 
-  async function remove(id: string) {
-    if (!confirm("Delete this item?")) return;
-    const res = await fetch(`/api/items/${config.key}/${id}`, { method: "DELETE" });
+  async function remove(item: Item) {
+    setDeleting(true);
+    const res = await fetch(`/api/items/${config.key}/${idOf(item)}`, { method: "DELETE" });
+    setDeleting(false);
     if (!res.ok) {
       toast.error("Could not delete");
       return;
     }
     toast.success("Deleted");
+    setPendingDelete(null);
     reload();
   }
 
@@ -129,7 +134,7 @@ export function EntityManager({ config }: { config: CollectionConfig }) {
                       setEditing(item);
                       setOpen(true);
                     }}
-                    onDelete={() => remove(idOf(item))}
+                    onDelete={() => setPendingDelete(item)}
                     onToggle={toggle}
                   />
                 ))}
@@ -148,6 +153,19 @@ export function EntityManager({ config }: { config: CollectionConfig }) {
         onSaved={() => {
           setOpen(false);
           reload();
+        }}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title={`Delete ${config.singular.toLowerCase()}`}
+        description={`Delete “${String(pendingDelete?.title || pendingDelete?.name || "this item")}”? This cannot be undone.`}
+        busy={deleting}
+        onOpenChange={(open) => {
+          if (!open && !deleting) setPendingDelete(null);
+        }}
+        onConfirm={() => {
+          if (pendingDelete) remove(pendingDelete);
         }}
       />
     </div>
@@ -291,7 +309,13 @@ function FieldControl({
 
   if (field.type === "image") {
     return (
-      <MediaUpload label={field.label} value={typeof value === "string" ? value : ""} onChange={onChange} />
+      <MediaUpload
+        label={field.label}
+        value={typeof value === "string" ? value : ""}
+        onChange={onChange}
+        aspect={field.aspect ?? "square"}
+        aspectSelectable={field.aspectSelectable}
+      />
     );
   }
 

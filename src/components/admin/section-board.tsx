@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { MediaUpload } from "@/components/admin/media-upload";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input, Label, Textarea } from "@/components/ui/fields";
 import { PageHeading } from "@/components/ui/page-heading";
@@ -65,6 +66,8 @@ export function SectionBoard() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<SectionItem | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<SectionItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   async function reload() {
@@ -124,14 +127,16 @@ export function SectionBoard() {
 
   async function remove(item: SectionItem) {
     if (!isCustomSection(item)) return;
-    if (!confirm(`Delete “${item.label}”? This cannot be undone.`)) return;
+    setDeleting(true);
     const res = await fetch(`/api/sections/${item._id}`, { method: "DELETE" });
+    setDeleting(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       toast.error(data.error || "Could not delete");
       return;
     }
     toast.success("Section deleted");
+    setPendingDelete(null);
     reload();
   }
 
@@ -169,7 +174,7 @@ export function SectionBoard() {
                       setEditing(item);
                       setOpen(true);
                     }}
-                    onDelete={() => remove(item)}
+                    onDelete={() => setPendingDelete(item)}
                   />
                 ))}
               </ul>
@@ -186,6 +191,19 @@ export function SectionBoard() {
         onSaved={() => {
           setOpen(false);
           reload();
+        }}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title="Delete section"
+        description={`Delete “${pendingDelete?.label}”? This cannot be undone.`}
+        busy={deleting}
+        onOpenChange={(open) => {
+          if (!open && !deleting) setPendingDelete(null);
+        }}
+        onConfirm={() => {
+          if (pendingDelete) remove(pendingDelete);
         }}
       />
     </div>

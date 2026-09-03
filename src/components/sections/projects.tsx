@@ -31,7 +31,9 @@ export function ProjectsSection({
                     src={item.coverUrl}
                     alt={item.title}
                     label="Project cover"
-                    className={cn("w-full rounded-3xl", i === 0 ? "aspect-[16/10] md:aspect-[16/8]" : "aspect-[16/10]")}
+                    fit="contain"
+                    padded={false}
+                    className="aspect-[16/9] w-full rounded-3xl bg-black/80"
                     sizes={i === 0 ? "100vw" : "(min-width: 768px) 45vw, 100vw"}
                   />
                 </MediaReveal>
@@ -49,16 +51,16 @@ export function ProjectsSection({
                     <Link
                       key={url}
                       href={`/projects/${item.slug}`}
-                      className="relative aspect-[16/10] w-16 shrink-0 overflow-hidden rounded-lg ring-1 ring-border transition-all hover:ring-foreground/30 sm:w-20"
+                      className="relative aspect-[16/9] w-16 shrink-0 overflow-hidden rounded-lg bg-black/80 ring-1 ring-border transition-all hover:ring-foreground/30 sm:w-20"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={url} alt={`${item.title} screenshot ${j + 1}`} className="h-full w-full object-cover" />
+                      <img src={url} alt={`${item.title} screenshot ${j + 1}`} className="h-full w-full object-contain" />
                     </Link>
                   ))}
                   {(item.images?.length ?? 0) > 4 ? (
                     <Link
                       href={`/projects/${item.slug}`}
-                      className="flex aspect-[16/10] w-16 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-xs text-muted ring-1 ring-border sm:w-20"
+                      className="flex aspect-[16/9] w-16 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-xs text-muted ring-1 ring-border sm:w-20"
                     >
                       +{(item.images?.length ?? 0) - 4}
                     </Link>

@@ -3,9 +3,9 @@
 import { ImagePlus, Trash2, GripVertical } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { ImageCropDialog } from "@/components/admin/image-crop-dialog";
+import { ImageCropDialog, type CropAspect } from "@/components/admin/image-crop-dialog";
 import { MediaProgress } from "@/components/admin/media-progress";
-import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cropFormatFor, cropToFile } from "@/lib/crop-image";
 import { cn } from "@/lib/utils";
 import type { Area } from "react-easy-crop";
@@ -53,6 +53,7 @@ export function GalleryUpload({
   const [percent, setPercent] = useState<number | null>(null);
   const localUrl = useRef("");
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [pendingRemove, setPendingRemove] = useState<string | null>(null);
 
   function closeCrop() {
     if (localUrl.current) URL.revokeObjectURL(localUrl.current);
@@ -69,12 +70,18 @@ export function GalleryUpload({
     setCropSrc(localUrl.current);
   }
 
-  async function applyCrop(area: Area) {
+  async function applyCrop(area: Area, shape: CropAspect) {
     setBusy(true);
     setStatus("Preparing");
     setPercent(null);
     try {
-      const file = await cropToFile(cropSrc, area, sourceName, 1920, cropFormatFor(sourceName, "cover"));
+      const file = await cropToFile(
+        cropSrc,
+        area,
+        sourceName,
+        shape === "cover" ? 1920 : 1600,
+        cropFormatFor(sourceName, shape),
+      );
       setStatus("Uploading");
       setPercent(0);
       const data = await postMedia(file, setPercent);
@@ -144,12 +151,12 @@ export function GalleryUpload({
               onDragOver={(e) => onDragOver(e, idx)}
               onDragEnd={onDragEnd}
               className={cn(
-                "group relative aspect-[16/10] overflow-hidden rounded-xl ring-1 ring-border",
+                "group relative aspect-[16/9] overflow-hidden rounded-xl bg-black/80 ring-1 ring-border",
                 dragIdx === idx && "opacity-50",
               )}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt="" className="h-full w-full object-cover" />
+              <img src={url} alt="" className="h-full w-full object-contain" />
               <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/0 opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100">
                 <button
                   type="button"
@@ -161,7 +168,7 @@ export function GalleryUpload({
                 <button
                   type="button"
                   disabled={removing === url}
-                  onClick={() => removeImage(url)}
+                  onClick={() => setPendingRemove(url)}
                   className="rounded-full bg-white/90 p-1.5 text-red-500 hover:bg-red-50"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -210,10 +217,25 @@ export function GalleryUpload({
           busy={busy}
           status={status}
           percent={percent}
+          selectable
           onCancel={closeCrop}
           onConfirm={applyCrop}
         />
       ) : null}
+
+      <ConfirmDialog
+        open={Boolean(pendingRemove)}
+        title="Remove image"
+        description="This image will be deleted from storage. This cannot be undone."
+        confirmLabel="Remove"
+        busy={Boolean(removing)}
+        onOpenChange={(open) => {
+          if (!open && !removing) setPendingRemove(null);
+        }}
+        onConfirm={() => {
+          if (pendingRemove) removeImage(pendingRemove).then(() => setPendingRemove(null));
+        }}
+      />
     </div>
   );
 }

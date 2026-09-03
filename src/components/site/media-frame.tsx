@@ -23,6 +23,7 @@ export function MediaFrame({
   label,
   className,
   fit = "cover",
+  padded = true,
 }: {
   src?: string | null;
   alt: string;
@@ -31,6 +32,7 @@ export function MediaFrame({
   sizes?: string;
   priority?: boolean;
   fit?: "cover" | "contain";
+  padded?: boolean;
 }) {
   return (
     <div
@@ -38,7 +40,11 @@ export function MediaFrame({
       className={cn("relative overflow-hidden rounded-3xl ring-1 ring-border", className)}
     >
       {src ? (
-        <CoverMedia src={src} alt={alt} className={fit === "contain" ? "object-contain p-[12%]" : undefined} />
+        <CoverMedia
+          src={src}
+          alt={alt}
+          className={fit === "contain" ? cn("object-contain", padded && "p-[12%]") : undefined}
+        />
       ) : (
         <div className="media-ph absolute inset-0 grid place-items-center">
           <div className="px-4 text-center">

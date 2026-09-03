@@ -142,6 +142,8 @@ export type FieldDef = {
   required?: boolean;
   placeholder?: string;
   options?: { value: string; label: string }[];
+  aspect?: "portrait" | "cover" | "square";
+  aspectSelectable?: boolean;
 };
 
 export type CollectionConfig = {

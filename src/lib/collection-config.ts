@@ -113,7 +113,7 @@ export const COLLECTION_CONFIG: Record<string, CollectionConfig> = {
       { name: "stack", label: "Stack", type: "tags", placeholder: "React, MongoDB, Node" },
       { name: "repoUrl", label: "Repo URL", type: "url" },
       { name: "liveUrl", label: "Live URL", type: "url" },
-      { name: "coverUrl", label: "Cover image", type: "image" },
+      { name: "coverUrl", label: "Cover image", type: "image", aspect: "cover", aspectSelectable: true },
       { name: "images", label: "Gallery", type: "gallery" },
       ...commonToggles,
     ],
