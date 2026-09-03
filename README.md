@@ -66,19 +66,15 @@ Create a Cloudinary account, then set:
 - `CLOUDINARY_API_KEY`
 - `CLOUDINARY_API_SECRET`
 
-## Contact form (Nodemailer)
+## Contact form (Resend)
 
-Set SMTP values in `.env.local`:
+Works on Vercel. Create a free account at [resend.com](https://resend.com), then set:
 
-- `SMTP_HOST` (Gmail: `smtp.gmail.com`)
-- `SMTP_PORT` (`587` for STARTTLS, `465` for SSL)
-- `SMTP_SECURE` (`true` only for port 465)
-- `SMTP_USER`
-- `SMTP_PASS` (Gmail needs an [App Password](https://myaccount.google.com/apppasswords), not your normal password)
-- `SMTP_FROM` (optional; defaults to `SMTP_USER`)
+- `RESEND_API_KEY` (from [API Keys](https://resend.com/api-keys))
+- `RESEND_FROM` — testing: `ROME <onboarding@resend.dev>` (can only send to the email on your Resend account). Production: a from-address on a [verified domain](https://resend.com/domains), e.g. `ROME <hello@yourdomain.com>`
 - `CONTACT_TO_EMAIL` (inbox that receives messages; defaults to `ADMIN_EMAIL`)
 
-Without SMTP config, development mode logs the message and still returns success.
+Without `RESEND_API_KEY` in development, the form logs the message and still returns success. In production it returns an error until Resend is configured.
 
 ## Analytics
 

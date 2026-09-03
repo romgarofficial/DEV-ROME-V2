@@ -110,8 +110,8 @@ export function ContactForm({
             <Label htmlFor="message">Message</Label>
             <Textarea id="message" name="message" required minLength={10} />
           </div>
-          <Button type="submit" disabled={status === "sending"} data-cursor="invert">
-            {status === "sending" ? "Sending…" : status === "sent" ? "Sent" : "Send message"}
+          <Button type="submit" disabled={status === "sending" || status === "sent"} data-cursor="invert">
+            {status === "sending" ? "Sending…" : status === "sent" ? "Sent — I’ll get back to you" : "Send message"}
           </Button>
           {error ? <p className="text-sm text-red-400">{error}</p> : null}
         </form>

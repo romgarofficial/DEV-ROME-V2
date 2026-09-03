@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["mongoose", "cloudinary", "bcryptjs", "nodemailer"],
+  serverExternalPackages: ["mongoose", "cloudinary", "bcryptjs"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },

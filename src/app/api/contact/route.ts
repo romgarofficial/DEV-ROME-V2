@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createMailer, isSmtpConfigured, mailFrom } from "@/lib/mail";
+import { isMailConfigured, sendContactMessage } from "@/lib/mail";
 
 const ContactSchema = z.object({
   name: z.string().min(2).max(120),
@@ -19,37 +19,23 @@ export async function POST(request: Request) {
     return Response.json({ ok: true });
   }
 
-  const to = process.env.CONTACT_TO_EMAIL || process.env.ADMIN_EMAIL;
-  const from = mailFrom();
-
-  if (!isSmtpConfigured() || !to || !from) {
+  if (!isMailConfigured()) {
     if (process.env.NODE_ENV !== "production") {
       console.info("[contact:dev]", parsed.data);
       return Response.json({ ok: true, dev: true });
     }
-    return Response.json(
-      { error: "Contact email is not configured yet." },
-      { status: 503 },
-    );
+    return Response.json({ error: "Contact email is not configured yet." }, { status: 503 });
   }
 
   try {
-    const transporter = createMailer();
-    if (!transporter) {
-      return Response.json({ error: "Contact email is not configured yet." }, { status: 503 });
-    }
-
-    await transporter.sendMail({
-      from,
-      to,
-      replyTo: parsed.data.email,
-      subject: `Portfolio message from ${parsed.data.name}`,
-      text: `${parsed.data.message}\n\nFrom: ${parsed.data.name} <${parsed.data.email}>`,
+    await sendContactMessage({
+      name: parsed.data.name,
+      email: parsed.data.email,
+      message: parsed.data.message,
     });
-
     return Response.json({ ok: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not send email";
-    return Response.json({ error: message }, { status: 500 });
+    console.error("[contact]", error);
+    return Response.json({ error: "Could not send the message. Try again in a moment." }, { status: 500 });
   }
 }
