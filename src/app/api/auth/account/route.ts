@@ -4,6 +4,7 @@ import { z } from "zod";
 import { badRequest, notFound, requireAdmin, unauthorized } from "@/lib/api";
 import { establishSession } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
+import { passwordMeetsRequirements, unmetPasswordRules } from "@/lib/password";
 import { User } from "@/models";
 
 const AccountUpdateSchema = z.object({
@@ -47,13 +48,18 @@ export async function PUT(request: Request) {
   }
 
   const next = parsed.data;
-  if (next.newPassword && next.newPassword.length < 8) {
-    return badRequest("New password must be at least 8 characters");
+  if (next.newPassword && !passwordMeetsRequirements(next.newPassword)) {
+    const first = unmetPasswordRules(next.newPassword)[0];
+    return badRequest(first ? `Password needs: ${first.label.toLowerCase()}` : "Password does not meet requirements");
   }
 
   await dbConnect();
   const user = await User.findById(session.sub);
   if (!user) return notFound("Account not found");
+
+  if (next.newPassword && next.currentPassword && next.newPassword === next.currentPassword) {
+    return badRequest("New password must be different from the current password");
+  }
 
   const emailChanged = Boolean(next.email && next.email !== user.email);
   const passwordChanged = Boolean(next.newPassword);
