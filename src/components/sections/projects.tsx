@@ -23,7 +23,7 @@ export function ProjectsSection({
           const href = itemHref(item.liveUrl || item.url);
 
           return (
-            <Reveal key={item._id} delay={i * 0.07} className={cn(i === 0 && "md:col-span-2")}>
+            <Reveal key={item._id} delay={i * 0.07} className={cn("h-full", i === 0 && "md:col-span-2")}>
               <Link href={`/projects/${item.slug}`} data-cursor="invert" className="group block">
                 <MediaReveal>
                   <MediaFrame

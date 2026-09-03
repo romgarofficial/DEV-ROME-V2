@@ -32,8 +32,8 @@ export function CertificatesSection({
           );
 
           return (
-            <Reveal key={item._id} delay={i * 0.05}>
-              <li className="overflow-hidden rounded-3xl ring-1 ring-border">
+            <Reveal key={item._id} delay={i * 0.05} className="h-full">
+              <li className="flex h-full flex-col overflow-hidden rounded-3xl ring-1 ring-border">
                 <MediaReveal>
                   {href ? (
                     <a
@@ -50,7 +50,7 @@ export function CertificatesSection({
                     image
                   )}
                 </MediaReveal>
-                <div className="glass p-4">
+                <div className="glass flex-1 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="font-medium">{item.title}</h3>

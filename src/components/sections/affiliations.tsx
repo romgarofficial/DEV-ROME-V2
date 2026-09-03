@@ -32,8 +32,8 @@ export function AffiliationsSection({
           );
 
           return (
-            <Reveal key={item._id} delay={i * 0.05}>
-              <li className="glass flex gap-4 rounded-3xl p-4 ring-1 ring-border">
+            <Reveal key={item._id} delay={i * 0.05} className="h-full">
+              <li className="glass flex h-full gap-4 rounded-3xl p-4 ring-1 ring-border">
                 <MediaReveal className="shrink-0">
                   {href ? (
                     <a

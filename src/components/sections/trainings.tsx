@@ -32,8 +32,8 @@ export function TrainingsSection({
           );
 
           return (
-            <Reveal key={item._id} delay={i * 0.05}>
-              <li className="overflow-hidden rounded-3xl ring-1 ring-border">
+            <Reveal key={item._id} delay={i * 0.05} className="h-full">
+              <li className="flex h-full flex-col overflow-hidden rounded-3xl ring-1 ring-border">
                 <MediaReveal>
                   {href ? (
                     <a
@@ -50,7 +50,7 @@ export function TrainingsSection({
                     image
                   )}
                 </MediaReveal>
-                <div className="p-4">
+                <div className="flex-1 p-4">
                   <h3 className="font-medium">{item.title}</h3>
                   <p className="text-sm text-muted">{item.provider}</p>
                   <p className="mt-1 text-[11px] tracking-[0.16em] text-muted uppercase">
