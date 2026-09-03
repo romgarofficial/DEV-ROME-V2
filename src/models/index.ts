@@ -4,6 +4,7 @@ import { Section } from "@/models/section";
 import {
   Affiliation,
   Certificate,
+  CustomItem,
   Education,
   Experience,
   Project,
@@ -22,6 +23,7 @@ export const models = {
   Training,
   Project,
   Skill,
+  CustomItem,
 };
 
 export {
@@ -35,4 +37,5 @@ export {
   Training,
   Project,
   Skill,
+  CustomItem,
 };

@@ -153,3 +153,26 @@ export const COLLECTION_CONFIG: Record<string, CollectionConfig> = {
     ],
   },
 };
+
+export function customSectionItemsConfig(section: { key: string; label: string }): CollectionConfig {
+  return {
+    key: section.key,
+    apiBase: `/api/custom-items/${section.key}`,
+    title: section.label,
+    singular: "Item",
+    description: `Add entries for “${section.label}”. They show on the public site under this section.`,
+    fields: [
+      { name: "title", label: "Title", type: "text", required: true },
+      { name: "organization", label: "Host / organizer", type: "text" },
+      { name: "location", label: "Location", type: "text" },
+      { name: "startDate", label: "Start", type: "date" },
+      { name: "endDate", label: "End", type: "date" },
+      { name: "current", label: "Ongoing", type: "checkbox" },
+      { name: "description", label: "Notes", type: "textarea" },
+      { name: "url", label: "URL", type: "url" },
+      { name: "imageUrl", label: "Image", type: "image", aspect: "cover", aspectSelectable: true },
+      { name: "fileUrl", label: "PDF", type: "file" },
+      ...commonToggles,
+    ],
+  };
+}

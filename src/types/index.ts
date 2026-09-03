@@ -87,6 +87,11 @@ export type TrainingDoc = ItemBase & {
   hours?: number;
 };
 
+export type CustomItemDoc = ItemBase & {
+  sectionKey: string;
+  fileUrl?: string;
+};
+
 export type ProjectDoc = ItemBase & {
   slug: string;
   summary?: string;
@@ -118,6 +123,7 @@ export type PortfolioData = {
   trainings: TrainingDoc[];
   projects: ProjectDoc[];
   skills: SkillDoc[];
+  customItems: Record<string, CustomItemDoc[]>;
   dbReady: boolean;
   error?: string;
 };
@@ -148,9 +154,10 @@ export type FieldDef = {
 };
 
 export type CollectionConfig = {
-  key: ItemCollection;
+  key: string;
   title: string;
   singular: string;
   description: string;
   fields: FieldDef[];
+  apiBase?: string;
 };

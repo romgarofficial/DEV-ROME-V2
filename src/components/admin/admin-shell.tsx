@@ -8,6 +8,7 @@ import {
   FolderGit2,
   GraduationCap,
   LayoutDashboard,
+  LayoutList,
   Layers3,
   LogOut,
   Sparkles,
@@ -38,9 +39,11 @@ const NAV = [
 
 export function AdminShell({
   email,
+  customNav = [],
   children,
 }: {
   email: string;
+  customNav?: { key: string; label: string }[];
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -82,6 +85,30 @@ export function AdminShell({
                   {active ? <span className="sidenav-active" /> : null}
                   <Icon className="relative z-[1] h-4 w-4" />
                   <span className="relative z-[1]">{item.label}</span>
+                </Link>
+              );
+            })}
+            {customNav.length ? (
+              <p className="col-span-full mt-3 px-3 text-[10px] tracking-[0.18em] text-muted uppercase">
+                Custom
+              </p>
+            ) : null}
+            {customNav.map((item) => {
+              const href = `/admin/custom/${item.key}`;
+              const active = pathname === href;
+              return (
+                <Link
+                  key={item.key}
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "relative flex items-center gap-2 rounded-full px-3 py-2.5 text-sm text-muted transition-colors hover:text-foreground",
+                    active && "text-accent",
+                  )}
+                >
+                  {active ? <span className="sidenav-active" /> : null}
+                  <LayoutList className="relative z-[1] h-4 w-4 shrink-0" />
+                  <span className="relative z-[1] truncate">{item.label}</span>
                 </Link>
               );
             })}

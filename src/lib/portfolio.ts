@@ -1,9 +1,11 @@
+import { isCustomSection, type ItemCollection } from "@/lib/constants";
 import { dbConnect, hasMongoUri } from "@/lib/db";
 import { ensureSeeded } from "@/lib/seed";
 import { serialize } from "@/lib/utils";
 import {
   Affiliation,
   Certificate,
+  CustomItem,
   Education,
   Experience,
   Profile,
@@ -12,8 +14,7 @@ import {
   Skill,
   Training,
 } from "@/models";
-import type { ItemCollection } from "@/lib/constants";
-import type { PortfolioData, ProjectDoc } from "@/types";
+import type { CustomItemDoc, PortfolioData, ProjectDoc } from "@/types";
 
 const empty: Omit<PortfolioData, "dbReady"> = {
   profile: null,
@@ -25,7 +26,18 @@ const empty: Omit<PortfolioData, "dbReady"> = {
   trainings: [],
   projects: [],
   skills: [],
+  customItems: {},
 };
+
+function groupCustomItems(items: CustomItemDoc[]) {
+  const grouped: Record<string, CustomItemDoc[]> = {};
+  for (const item of items) {
+    const key = item.sectionKey;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(item);
+  }
+  return grouped;
+}
 
 export async function getPortfolio(): Promise<PortfolioData> {
   if (!hasMongoUri()) {
@@ -48,6 +60,7 @@ export async function getPortfolio(): Promise<PortfolioData> {
       trainings,
       projects,
       skills,
+      customItemDocs,
     ] = await Promise.all([
       Profile.findOne().lean(),
       Section.find({ visible: true }).sort({ order: 1 }).lean(),
@@ -58,6 +71,7 @@ export async function getPortfolio(): Promise<PortfolioData> {
       Training.find(published).sort({ order: 1, createdAt: -1 }).lean(),
       Project.find(published).sort({ order: 1, createdAt: -1 }).lean(),
       Skill.find(published).sort({ order: 1, createdAt: -1 }).lean(),
+      CustomItem.find(published).sort({ order: 1, createdAt: -1 }).lean(),
     ]);
 
     return serialize({
@@ -70,6 +84,7 @@ export async function getPortfolio(): Promise<PortfolioData> {
       trainings,
       projects,
       skills,
+      customItems: groupCustomItems(customItemDocs as unknown as CustomItemDoc[]),
       dbReady: true,
     }) as unknown as PortfolioData;
   } catch (error) {
@@ -99,4 +114,33 @@ export async function getAdminCounts(): Promise<Record<ItemCollection, number>> 
       Skill.countDocuments(),
     ]);
   return { experience, education, affiliations, certificates, trainings, projects, skills };
+}
+
+export async function getCustomAdminNav(): Promise<{ key: string; label: string }[]> {
+  if (!hasMongoUri()) return [];
+  try {
+    await dbConnect();
+    await ensureSeeded();
+    const sections = await Section.find().sort({ order: 1 }).select("key label kind").lean();
+    return serialize(
+      sections
+        .filter((section) => isCustomSection(section))
+        .map((section) => ({ key: section.key, label: section.label })),
+    );
+  } catch {
+    return [];
+  }
+}
+
+export async function getCustomSectionCounts(): Promise<Record<string, number>> {
+  if (!hasMongoUri()) return {};
+  try {
+    await dbConnect();
+    const rows = await CustomItem.aggregate<{ _id: string; n: number }>([
+      { $group: { _id: "$sectionKey", n: { $sum: 1 } } },
+    ]);
+    return Object.fromEntries(rows.map((row) => [row._id, row.n]));
+  } catch {
+    return {};
+  }
 }

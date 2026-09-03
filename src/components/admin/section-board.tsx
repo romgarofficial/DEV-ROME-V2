@@ -15,7 +15,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { GripVertical, List, Pencil, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { MediaUpload } from "@/components/admin/media-upload";
@@ -62,6 +64,7 @@ const emptyForm: SectionForm = {
 };
 
 export function SectionBoard() {
+  const router = useRouter();
   const [items, setItems] = useState<SectionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -138,6 +141,7 @@ export function SectionBoard() {
     toast.success("Section deleted");
     setPendingDelete(null);
     reload();
+    router.refresh();
   }
 
   return (
@@ -191,13 +195,14 @@ export function SectionBoard() {
         onSaved={() => {
           setOpen(false);
           reload();
+          router.refresh();
         }}
       />
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
         title="Delete section"
-        description={`Delete “${pendingDelete?.label}”? This cannot be undone.`}
+        description={`Delete “${pendingDelete?.label}” and all of its items? This cannot be undone.`}
         busy={deleting}
         onOpenChange={(open) => {
           if (!open && !deleting) setPendingDelete(null);
@@ -246,6 +251,13 @@ function SectionRow({
       </div>
       <span className="hidden text-xs text-muted sm:inline">{item.visible ? "Visible" : "Hidden"}</span>
       <Switch checked={item.visible} onCheckedChange={(value) => onToggle(item._id, value)} />
+      {custom ? (
+        <Button asChild variant="ghost" size="icon" aria-label={`Manage items in ${item.label}`}>
+          <Link href={`/admin/custom/${item.key}`}>
+            <List className="h-4 w-4" />
+          </Link>
+        </Button>
+      ) : null}
       <Button type="button" variant="ghost" size="icon" aria-label={`Edit ${item.label}`} onClick={onEdit}>
         <Pencil className="h-4 w-4" />
       </Button>
@@ -319,7 +331,7 @@ function SectionDialog({
         </DialogTitle>
         <DialogDescription className="mt-1 text-sm text-muted">
           {custom
-            ? "This appears in the sidenav and on the public site. Markdown is supported in the body."
+            ? "This appears in the admin sidebar so you can add items. Markdown is supported in the intro body."
             : "Built-in sections keep their structured content. You can only change the nav label."}
         </DialogDescription>
         <div className="mt-4 grid gap-4">

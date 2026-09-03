@@ -3,10 +3,14 @@ import { Card } from "@/components/ui/card";
 import { PageHeading } from "@/components/ui/page-heading";
 import { COLLECTION_CONFIG } from "@/lib/collection-config";
 import type { ItemCollection } from "@/lib/constants";
-import { getAdminCounts } from "@/lib/portfolio";
+import { getAdminCounts, getCustomAdminNav, getCustomSectionCounts } from "@/lib/portfolio";
 
 export default async function AdminHomePage() {
-  const counts = await getAdminCounts();
+  const [counts, customNav, customCounts] = await Promise.all([
+    getAdminCounts(),
+    getCustomAdminNav(),
+    getCustomSectionCounts(),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -21,6 +25,14 @@ export default async function AdminHomePage() {
             <Card className="p-6 transition-colors hover:ring-accent/40">
               <p className="text-[11px] tracking-[0.2em] text-muted uppercase">{collection.title}</p>
               <p className="font-display mt-3 text-4xl tracking-tight">{counts[collection.key as ItemCollection]}</p>
+            </Card>
+          </Link>
+        ))}
+        {customNav.map((section) => (
+          <Link key={section.key} href={`/admin/custom/${section.key}`}>
+            <Card className="p-6 transition-colors hover:ring-accent/40">
+              <p className="text-[11px] tracking-[0.2em] text-muted uppercase">{section.label}</p>
+              <p className="font-display mt-3 text-4xl tracking-tight">{customCounts[section.key] ?? 0}</p>
             </Card>
           </Link>
         ))}

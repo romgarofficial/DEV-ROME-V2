@@ -22,7 +22,7 @@ export function SectionRenderer({ data }: { data: PortfolioData }) {
 
   function renderBody(section: SectionDoc, index: string) {
     if (isCustomSection(section) || !isSystemSectionKey(section.key)) {
-      return <CustomSection section={section} index={index} />;
+      return <CustomSection section={section} index={index} items={data.customItems?.[section.key] ?? []} />;
     }
 
     switch (section.key) {
@@ -47,7 +47,7 @@ export function SectionRenderer({ data }: { data: PortfolioData }) {
       case "hero":
         return null;
       default:
-        return <CustomSection section={section} index={index} />;
+        return <CustomSection section={section} index={index} items={data.customItems?.[section.key] ?? []} />;
     }
   }
 

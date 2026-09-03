@@ -230,3 +230,31 @@ const SkillSchema = new Schema<SkillRecord>(
 );
 
 export const Skill = getModel<SkillRecord>("Skill", SkillSchema);
+
+export type CustomItemRecord = {
+  sectionKey: string;
+  title: string;
+  organization: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  current: boolean;
+  description: string;
+  url: string;
+  imageUrl: string;
+  fileUrl: string;
+  featured: boolean;
+  published: boolean;
+  order: number;
+};
+
+const CustomItemSchema = new Schema<CustomItemRecord>(
+  {
+    sectionKey: { type: String, required: true, index: true, lowercase: true, trim: true },
+    ...itemFields,
+    fileUrl: { type: String, default: "" },
+  },
+  { timestamps: true },
+);
+
+export const CustomItem = getModel<CustomItemRecord>("CustomItem", CustomItemSchema);

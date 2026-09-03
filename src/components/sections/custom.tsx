@@ -1,9 +1,18 @@
+import { CustomItemCard } from "@/components/sections/custom-item-card";
 import { MediaFrame } from "@/components/site/media-frame";
 import { MarkdownBody } from "@/components/site/markdown-body";
 import { MediaReveal, Reveal, SectionBand } from "@/lib/motion";
-import type { SectionDoc } from "@/types";
+import type { CustomItemDoc, SectionDoc } from "@/types";
 
-export function CustomSection({ section, index }: { section: SectionDoc; index: string }) {
+export function CustomSection({
+  section,
+  index,
+  items = [],
+}: {
+  section: SectionDoc;
+  index: string;
+  items?: CustomItemDoc[];
+}) {
   const title = section.heading?.trim() || section.label;
   const kicker = section.kicker?.trim() || section.label;
   const image = section.imageUrl?.trim();
@@ -40,6 +49,20 @@ export function CustomSection({ section, index }: { section: SectionDoc; index: 
         <Reveal>
           <MarkdownBody>{body}</MarkdownBody>
         </Reveal>
+      ) : null}
+
+      {items.length ? (
+        <ul className={`grid gap-6 sm:grid-cols-2 ${image || body ? "mt-10" : ""}`}>
+          {items.map((item, i) => (
+            <Reveal key={item._id} delay={i * 0.05} className="h-full">
+              <li className="h-full">
+                <MediaReveal className="h-full">
+                  <CustomItemCard item={item} />
+                </MediaReveal>
+              </li>
+            </Reveal>
+          ))}
+        </ul>
       ) : null}
     </SectionBand>
   );

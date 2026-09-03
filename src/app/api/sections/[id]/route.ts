@@ -9,7 +9,7 @@ import {
 } from "@/lib/sections";
 import { deleteMedia } from "@/lib/upload";
 import { serialize } from "@/lib/utils";
-import { Section } from "@/models";
+import { CustomItem, Section } from "@/models";
 
 function asSection(doc: unknown) {
   const record = (doc ?? {}) as Record<string, unknown>;
@@ -92,8 +92,18 @@ export async function DELETE(
   }
 
   const imageUrl = stringField(current, "imageUrl");
+  const sectionKey = stringField(current, "key");
+  const items = sectionKey ? await CustomItem.find({ sectionKey }).lean() : [];
+  if (sectionKey) await CustomItem.deleteMany({ sectionKey });
   await Section.collection.deleteOne({ _id: current._id });
-  if (imageUrl) await deleteMedia(imageUrl).catch(() => undefined);
+  await Promise.allSettled(
+    [
+      imageUrl,
+      ...items.flatMap((item) => [item.imageUrl, item.fileUrl]),
+    ]
+      .filter(Boolean)
+      .map((url) => deleteMedia(url)),
+  );
   await revalidatePortfolio();
   return Response.json({ ok: true });
 }

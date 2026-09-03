@@ -32,6 +32,11 @@ import { idOf, slugify } from "@/lib/utils";
 
 type Item = Record<string, unknown> & { _id?: string };
 
+function apiPath(config: CollectionConfig, id?: string) {
+  const base = config.apiBase ?? `/api/items/${config.key}`;
+  return id ? `${base}/${id}` : base;
+}
+
 export function EntityManager({ config }: { config: CollectionConfig }) {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +48,8 @@ export function EntityManager({ config }: { config: CollectionConfig }) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/items/${config.key}`)
+    setLoading(true);
+    fetch(apiPath(config))
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled) setItems(data.items ?? []);
@@ -54,10 +60,10 @@ export function EntityManager({ config }: { config: CollectionConfig }) {
     return () => {
       cancelled = true;
     };
-  }, [config.key]);
+  }, [config.key, config.apiBase]);
 
   async function reload() {
-    const res = await fetch(`/api/items/${config.key}`);
+    const res = await fetch(apiPath(config));
     const data = await res.json();
     setItems(data.items ?? []);
   }
@@ -69,7 +75,7 @@ export function EntityManager({ config }: { config: CollectionConfig }) {
     const newIndex = items.findIndex((item) => idOf(item) === over.id);
     const next = arrayMove(items, oldIndex, newIndex);
     setItems(next);
-    await fetch(`/api/items/${config.key}`, {
+    await fetch(apiPath(config), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids: next.map((item) => idOf(item)) }),
@@ -78,7 +84,7 @@ export function EntityManager({ config }: { config: CollectionConfig }) {
 
   async function remove(item: Item) {
     setDeleting(true);
-    const res = await fetch(`/api/items/${config.key}/${idOf(item)}`, { method: "DELETE" });
+    const res = await fetch(apiPath(config, idOf(item)), { method: "DELETE" });
     setDeleting(false);
     if (!res.ok) {
       toast.error("Could not delete");
@@ -90,7 +96,7 @@ export function EntityManager({ config }: { config: CollectionConfig }) {
   }
 
   async function toggle(item: Item, field: "published" | "featured", value: boolean) {
-    await fetch(`/api/items/${config.key}/${idOf(item)}`, {
+    await fetch(apiPath(config, idOf(item)), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ [field]: value }),
@@ -244,7 +250,7 @@ function ItemDialog({
       payload.slug = slugify(String(payload.title));
     }
     const isEdit = Boolean(item?._id);
-    const url = isEdit ? `/api/items/${config.key}/${item?._id}` : `/api/items/${config.key}`;
+    const url = isEdit ? apiPath(config, String(item?._id)) : apiPath(config);
     const res = await fetch(url, {
       method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
