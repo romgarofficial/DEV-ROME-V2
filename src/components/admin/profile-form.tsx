@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Input, Label, Textarea } from "@/components/ui/fields";
 import { PageHeading } from "@/components/ui/page-heading";
 import { Switch } from "@/components/ui/switch";
-import type { ProfileDoc, SocialLink } from "@/types";
+import type { ProfileDoc } from "@/types";
 
 export function ProfileForm({ initial }: { initial: ProfileDoc | null }) {
   const router = useRouter();
@@ -22,9 +22,6 @@ export function ProfileForm({ initial }: { initial: ProfileDoc | null }) {
     photoUrl: "",
     backgroundUrl: "",
     location: "",
-    email: "",
-    phone: "",
-    socials: [],
     resumeUrl: "",
     seoTitle: "",
     seoDescription: "",
@@ -39,8 +36,6 @@ export function ProfileForm({ initial }: { initial: ProfileDoc | null }) {
   function set<K extends keyof ProfileDoc>(key: K, value: ProfileDoc[K]) {
     setForm((current) => ({ ...current, [key]: value }));
   }
-
-  const socials = form.socials ?? [];
 
   async function save() {
     if (uploading) {
@@ -69,7 +64,7 @@ export function ProfileForm({ initial }: { initial: ProfileDoc | null }) {
       <PageHeading
         kicker="Identity"
         title="Profile"
-        description="Global identity used by the hero, about, SEO, and contact sections."
+        description="Global identity used by the hero, about, and SEO. Email, phone, and socials live under Contact."
       />
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,32rem)]">
         <Card className="grid gap-4 p-6 sm:p-8">
@@ -86,12 +81,6 @@ export function ProfileForm({ initial }: { initial: ProfileDoc | null }) {
             <Textarea value={form.bio ?? ""} onChange={(e) => set("bio", e.target.value)} />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Email">
-              <Input value={form.email ?? ""} onChange={(e) => set("email", e.target.value)} />
-            </Field>
-            <Field label="Phone">
-              <Input value={form.phone ?? ""} onChange={(e) => set("phone", e.target.value)} />
-            </Field>
             <Field label="Location">
               <Input value={form.location ?? ""} onChange={(e) => set("location", e.target.value)} />
             </Field>
@@ -132,46 +121,6 @@ export function ProfileForm({ initial }: { initial: ProfileDoc | null }) {
               onCheckedChange={(value) => set("availableForWork", value)}
             />
           </label>
-          <div className="space-y-3">
-            <Label>Socials</Label>
-            {socials.map((social, index) => (
-              <div key={index} className="grid grid-cols-[1fr_2fr_auto] gap-2">
-                <Input
-                  placeholder="GitHub"
-                  value={social.platform}
-                  onChange={(e) => {
-                    const next = [...socials];
-                    next[index] = { ...next[index], platform: e.target.value };
-                    set("socials", next);
-                  }}
-                />
-                <Input
-                  placeholder="https://"
-                  value={social.url}
-                  onChange={(e) => {
-                    const next = [...socials];
-                    next[index] = { ...next[index], url: e.target.value };
-                    set("socials", next);
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => set("socials", socials.filter((_, i) => i !== index))}
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => set("socials", [...socials, { platform: "", url: "" } as SocialLink])}
-            >
-              Add social
-            </Button>
-          </div>
           <div className="flex justify-end">
             <Button onClick={save} disabled={saving || uploading > 0}>
               {uploading > 0 ? "Working…" : saving ? "Saving…" : "Save profile"}

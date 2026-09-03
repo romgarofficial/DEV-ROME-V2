@@ -1,4 +1,3 @@
-import { SocialIcon } from "@/components/site/social-icon";
 import type { ProfileDoc } from "@/types";
 
 export function SiteFooter({ profile }: { profile: ProfileDoc | null }) {
@@ -10,26 +9,13 @@ export function SiteFooter({ profile }: { profile: ProfileDoc | null }) {
       <p className="mt-2 text-sm text-muted">
         © {new Date().getUTCFullYear()} · {profile?.title || "Software Engineer"}
       </p>
-      <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-muted">
-        {profile?.socials?.map((social) => (
-          <a
-            key={social.platform}
-            href={social.url}
-            target="_blank"
-            rel="noreferrer"
-            data-cursor="invert"
-            className="inline-flex items-center gap-2 hover:text-foreground"
-          >
-            <SocialIcon name={social.platform} />
-            {social.platform}
-          </a>
-        ))}
-        {profile?.resumeUrl ? (
+      {profile?.resumeUrl ? (
+        <div className="mt-6 text-sm text-muted">
           <a href={profile.resumeUrl} data-cursor="invert" className="hover:text-foreground">
             Resume
           </a>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </footer>
   );
 }

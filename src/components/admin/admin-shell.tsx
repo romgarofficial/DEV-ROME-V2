@@ -12,6 +12,7 @@ import {
   LayoutList,
   Layers3,
   LogOut,
+  Mail,
   Sparkles,
   UserRound,
   Users,
@@ -28,6 +29,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/profile", label: "Profile", icon: UserRound },
+  { href: "/admin/contact", label: "Contact", icon: Mail },
   { href: "/admin/account", label: "Account", icon: KeyRound },
   { href: "/admin/sections", label: "Sections", icon: Layers3 },
   { href: "/admin/experience", label: "Experience", icon: Briefcase },
