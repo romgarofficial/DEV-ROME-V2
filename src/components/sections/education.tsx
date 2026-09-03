@@ -1,15 +1,9 @@
 import { ExternalLink } from "lucide-react";
 import { MediaFrame } from "@/components/site/media-frame";
 import { MediaReveal, Reveal, SectionBand } from "@/lib/motion";
+import { itemHref } from "@/lib/item-href";
 import { formatDateRange } from "@/lib/utils";
 import type { EducationDoc } from "@/types";
-
-function schoolHref(url?: string) {
-  const value = url?.trim();
-  if (!value) return "";
-  if (/^https?:\/\//i.test(value)) return value;
-  return `https://${value}`;
-}
 
 export function EducationSection({
   items,
@@ -25,7 +19,7 @@ export function EducationSection({
     <SectionBand id="education" index={index} kicker="Education" title="Schools">
       <div className="space-y-8">
         {items.map((item, i) => {
-          const href = schoolHref(item.url);
+          const href = itemHref(item.url);
           const school = item.organization || item.title;
           const logo = (
             <MediaFrame

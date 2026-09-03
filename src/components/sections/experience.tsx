@@ -1,15 +1,9 @@
 import { ExternalLink } from "lucide-react";
 import { MediaFrame } from "@/components/site/media-frame";
 import { MediaReveal, Reveal, SectionBand } from "@/lib/motion";
+import { itemHref } from "@/lib/item-href";
 import { formatDateRange } from "@/lib/utils";
 import type { ExperienceDoc } from "@/types";
-
-function companyHref(url?: string) {
-  const value = url?.trim();
-  if (!value) return "";
-  if (/^https?:\/\//i.test(value)) return value;
-  return `https://${value}`;
-}
 
 export function ExperienceSection({
   items,
@@ -22,10 +16,10 @@ export function ExperienceSection({
   if (!items.length) return null;
 
   return (
-    <SectionBand id="experience" index={index} kicker="Experience" title="Where I’ve built">
+    <SectionBand id="experience" index={index} kicker="Experience" title="Where I've built">
       <ol className="space-y-6">
         {items.map((item, i) => {
-          const href = companyHref(item.url);
+          const href = itemHref(item.url);
           const company = item.organization || item.title;
           const logo = (
             <MediaFrame
